@@ -2,6 +2,8 @@
 
 `flareio` is a light [Flare API](https://api.docs.flare.io/) SDK that wraps a [net/http Client](https://pkg.go.dev/net/http#Client) and automatically manages authentication.
 
+It exposes methods that are equivalent to `net/http.Client`.
+
 Usage examples and use cases are documented in the [Flare API documentation](https://api.docs.flare.io/concepts/sdk).
 
 ## Contributing
