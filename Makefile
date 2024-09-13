@@ -5,3 +5,7 @@ test:
 .PHONY: lint
 lint:
 	go vet ./...
+
+.PHONY: format
+format:
+	go fmt ./...
