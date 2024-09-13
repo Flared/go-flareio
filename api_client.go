@@ -65,7 +65,7 @@ func (client *ApiClient) GenerateToken() (string, error) {
 	// Create dest URL
 	destUrl, err := url.JoinPath(client.baseUrl, "/tokens/generate")
 	if err != nil {
-		return "", fmt.Errorf("failed to create test URL: %w", err)
+		return "", fmt.Errorf("failed to create dest URL: %w", err)
 	}
 
 	// Prepare the request
@@ -84,6 +84,7 @@ func (client *ApiClient) GenerateToken() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to generate API token: %w", err)
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		return "", fmt.Errorf("unexpected response code: %d", resp.StatusCode)
 	}
@@ -105,4 +106,34 @@ func (client *ApiClient) GenerateToken() (string, error) {
 
 func (client *ApiClient) isApiTokenExpired() bool {
 	return client.apiTokenExp.Before(time.Now())
+}
+
+func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
+	if client.isApiTokenExpired() {
+		if _, err := client.GenerateToken(); err != nil {
+			return nil, err
+		}
+	}
+	apiToken := client.apiToken
+
+	request.Header.Add(
+		"Authorization",
+		fmt.Sprintf("Bearer %s", apiToken),
+	)
+
+	return client.httpClient.Do(request)
+}
+
+func (client *ApiClient) Get(path string) (*http.Response, error) {
+	destUrl, err := url.JoinPath(client.baseUrl, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create dest URL: %w", err)
+	}
+
+	request, err := http.NewRequest("GET", destUrl, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %w", err)
+	}
+
+	return client.do(request)
 }
