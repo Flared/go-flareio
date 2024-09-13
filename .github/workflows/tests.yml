@@ -1,0 +1,18 @@
+name: Tests
+on: push
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [
+          '1.23',
+        ]
+    name: Golang ${{ matrix.go-version }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+    - run: make test
+    - run: make lint
