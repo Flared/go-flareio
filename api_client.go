@@ -31,7 +31,7 @@ func withBaseUrl(baseUrl string) ApiClientOption {
 	}
 }
 
-func NewClient(
+func NewApiClient(
 	apiKey string,
 	optionFns ...ApiClientOption,
 ) *ApiClient {

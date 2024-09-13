@@ -19,7 +19,7 @@ func newClientTest(
 	httpServer := httptest.NewServer(
 		handler,
 	)
-	apiClient := NewClient(
+	apiClient := NewApiClient(
 		"test-api-key",
 		withBaseUrl(httpServer.URL),
 	)
