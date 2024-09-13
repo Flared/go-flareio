@@ -45,7 +45,12 @@ func TestGenerateToken(t *testing.T) {
 	)
 	defer clientTest.Close()
 
+	assert.Equal(t, "", clientTest.apiClient.apiToken, "The initial api token should be empty")
+	assert.True(t, clientTest.apiClient.isApiTokenExpired(), "The initial api token exp should be before now")
+
 	token, err := clientTest.apiClient.GenerateToken()
 	assert.NoError(t, err, "Generating a token")
 	assert.Equal(t, "test-token-hello", token)
+	assert.Equal(t, "test-token-hello", clientTest.apiClient.apiToken)
+	assert.False(t, clientTest.apiClient.isApiTokenExpired(), "The api token should be unexpired")
 }

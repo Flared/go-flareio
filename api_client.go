@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type ApiClient struct {
-	tenantId   int
-	apiKey     string
-	httpClient *http.Client
-	baseUrl    string
+	tenantId    int
+	apiKey      string
+	httpClient  *http.Client
+	baseUrl     string
+	apiToken    string
+	apiTokenExp time.Time
 }
 
 type ApiClientOption func(*ApiClient)
@@ -94,5 +97,12 @@ func (client *ApiClient) GenerateToken() (string, error) {
 		return "", err
 	}
 
+	client.apiToken = tokenResponse.Token
+	client.apiTokenExp = time.Now().Add(time.Minute * 45)
+
 	return tokenResponse.Token, nil
+}
+
+func (client *ApiClient) isApiTokenExpired() bool {
+	return client.apiTokenExp.Before(time.Now())
 }
