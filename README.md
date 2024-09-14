@@ -33,7 +33,7 @@ func main() {
 		os.Getenv("FLARE_API_KEY"),
 	)
 	resp, err := client.Get(
-		"/leaksdb/v2/sources",
+		"/leaksdb/v2/sources", nil,
 	)
 	if err != nil {
 		fmt.Printf("failed to get sources: %s\n", err)
