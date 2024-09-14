@@ -108,6 +108,9 @@ func (client *ApiClient) IterPostJson(
 	return createPagingIterator(
 		func(cursor string) (*http.Response, error) {
 			if cursor != "" {
+				if body == nil {
+					body = make(map[string]interface{})
+				}
 				body["from"] = cursor
 			}
 

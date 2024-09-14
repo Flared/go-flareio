@@ -141,3 +141,39 @@ func TestIterPostJson(t *testing.T) {
 	)
 
 }
+
+func TestIterPostJsonNilMap(t *testing.T) {
+	requestsReceived := 0
+
+	ct := newClientTest(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestsReceived = requestsReceived + 1
+			if requestsReceived == 1 {
+				w.Write([]byte(`{"next": "second-page"}`))
+			} else {
+				w.Write([]byte(`{"next": null}`))
+			}
+		}),
+	)
+	defer ct.Close()
+
+	requestsSent := 0
+	nextTokens := []string{}
+
+	for result, err := range ct.apiClient.IterPostJson(
+		"/leaksdb/sources",
+		nil,
+		nil,
+	) {
+		requestsSent = requestsSent + 1
+		if requestsSent > 2 {
+			// We are going crazy here...
+			break
+		}
+		assert.Nil(t, err, "iter yielded an error")
+		assert.NotNil(t, result, "didn't get a result")
+		nextTokens = append(nextTokens, result.Next)
+	}
+
+	assert.Equal(t, 2, requestsSent, "Didn't get the expected number of pages")
+}
