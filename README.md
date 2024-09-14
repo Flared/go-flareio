@@ -2,10 +2,9 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/Flared/go-flareio.svg)](https://pkg.go.dev/github.com/Flared/go-flareio)
 
-`flareio` is a light [Flare API](https://api.docs.flare.io/) SDK.
-It is a wrapper around [net/http.Client](https://pkg.go.dev/net/http#Client) that automatically manages API authentication.
+`flareio` is a light [Flare API](https://api.docs.flare.io/) SDK that wraps around [net/http.Client](https://pkg.go.dev/net/http#Client) and automatically manages authentication.
 
-It exposes methods that are similar to `net/http.Client`.
+It exposes methods that are similar to `net/http.Client` with the exception that they accept paths as parameters instead of full URLs.
 
 Usage examples and use cases are documented in the [Flare API documentation](https://api.docs.flare.io/sdk/go).
 
