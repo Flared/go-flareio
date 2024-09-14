@@ -7,7 +7,7 @@ It is a wrapper around [net/http.Client](https://pkg.go.dev/net/http#Client) tha
 
 It exposes methods that are similar to `net/http.Client`.
 
-Usage examples and use cases are documented in the [Flare API documentation](https://api.docs.flare.io/concepts/sdk).
+Usage examples and use cases are documented in the [Flare API documentation](https://api.docs.flare.io/sdk/go).
 
 ## Contributing
 
