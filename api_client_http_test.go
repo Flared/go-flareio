@@ -45,7 +45,7 @@ func TestGenerateToken(t *testing.T) {
 	ct := newClientTest(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/tokens/generate", r.URL.Path)
-			assert.Equal(t, []string{"test-api-key"}, r.Header["Authorization"])
+			assert.Equal(t, "test-api-key", r.Header.Get("Authorization"))
 			w.Write([]byte(`{"token":"test-api-token"}`))
 		}),
 	)
@@ -68,11 +68,11 @@ func TestGetUnauthenticated(t *testing.T) {
 	ct := newClientTest(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/tokens/generate" {
-				assert.Equal(t, []string{"test-api-key"}, r.Header["Authorization"])
+				assert.Equal(t, "test-api-key", r.Header.Get("Authorization"))
 				w.Write([]byte(`{"token":"test-api-token"}`))
 			} else {
 				assert.Equal(t, "/test-endpoint", r.URL.Path)
-				assert.Equal(t, []string{"Bearer test-api-token"}, r.Header["Authorization"])
+				assert.Equal(t, "Bearer test-api-token", r.Header.Get("Authorization"))
 				w.Write([]byte(`"hello"`))
 			}
 		}),
@@ -92,7 +92,7 @@ func TestPost(t *testing.T) {
 	ct := newClientTest(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/hey", r.URL.Path, "didn't get the expected path")
-			assert.Equal(t, []string{"application/something-custom"}, r.Header["Content-Type"], "didn't get the expected path")
+			assert.Equal(t, "application/something-custom", r.Header.Get("Content-Type"), "didn't get the expected path")
 			w.Write([]byte(`"ho"`))
 		}),
 	)
