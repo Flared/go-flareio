@@ -111,7 +111,8 @@ func TestPost(t *testing.T) {
 func TestGetParams(t *testing.T) {
 	ct := newClientTest(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, "/some-path?some-param=some-value", r.URL.Path, "didn't get the expected path")
+			assert.Equal(t, "/some-path", r.URL.Path, "didn't get the expected path")
+			assert.Equal(t, "some-param=some-value", r.URL.RawQuery, "didn't get the expected query")
 		}),
 	)
 	defer ct.Close()

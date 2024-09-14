@@ -116,6 +116,20 @@ func (client *ApiClient) getOrGenerateToken() (string, error) {
 	return client.GenerateToken()
 }
 
+func (client *ApiClient) createDestUrl(
+	path string,
+	params *url.Values,
+) (string, error) {
+	destUrl, err := url.JoinPath(client.baseUrl, path)
+	if err != nil {
+		return "", fmt.Errorf("failed to create dest URL: %w", err)
+	}
+	if params != nil {
+		destUrl = destUrl + "?" + params.Encode()
+	}
+	return destUrl, nil
+}
+
 func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
 	if apiToken, err := client.getOrGenerateToken(); err != nil {
 		return nil, err
@@ -129,7 +143,11 @@ func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
 }
 
 func (client *ApiClient) Get(path string) (*http.Response, error) {
-	destUrl, err := url.JoinPath(client.baseUrl, path)
+	return client.GetParams(path, nil)
+}
+
+func (client *ApiClient) GetParams(path string, params *url.Values) (*http.Response, error) {
+	destUrl, err := client.createDestUrl(path, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create dest URL: %w", err)
 	}
@@ -142,15 +160,17 @@ func (client *ApiClient) Get(path string) (*http.Response, error) {
 	return client.do(request)
 }
 
-func (client *ApiClient) GetParams(path string, params *url.Values) (*http.Response, error) {
-	if params != nil {
-		path = path + "?" + params.Encode()
-	}
-	return client.Get(path)
+func (client *ApiClient) Post(path, contentType string, body io.Reader) (*http.Response, error) {
+	return client.PostParams(path, nil, contentType, body)
 }
 
-func (client *ApiClient) Post(path, contentType string, body io.Reader) (*http.Response, error) {
-	destUrl, err := url.JoinPath(client.baseUrl, path)
+func (client *ApiClient) PostParams(
+	path string,
+	params *url.Values,
+	contentType string,
+	body io.Reader,
+) (*http.Response, error) {
+	destUrl, err := client.createDestUrl(path, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create dest URL: %w", err)
 	}
