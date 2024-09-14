@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -131,6 +132,20 @@ func (client *ApiClient) Get(path string) (*http.Response, error) {
 	}
 
 	request, err := http.NewRequest("GET", destUrl, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %w", err)
+	}
+
+	return client.do(request)
+}
+
+func (client *ApiClient) Post(path, contentType string, body io.Reader) (*http.Response, error) {
+	destUrl, err := url.JoinPath(client.baseUrl, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create dest URL: %w", err)
+	}
+
+	request, err := http.NewRequest("POST", destUrl, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create http request: %w", err)
 	}

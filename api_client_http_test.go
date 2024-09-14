@@ -9,14 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type ClientTest struct {
+type clientTest struct {
 	apiClient  *ApiClient
 	httpServer *httptest.Server
 }
 
 func newClientTest(
 	handler http.HandlerFunc,
-) *ClientTest {
+) *clientTest {
 	httpServer := httptest.NewServer(
 		handler,
 	)
@@ -24,41 +24,39 @@ func newClientTest(
 		"test-api-key",
 		withBaseUrl(httpServer.URL),
 	)
-	clientTest := &ClientTest{
+	ct := &clientTest{
 		httpServer: httpServer,
 		apiClient:  apiClient,
 	}
-	return clientTest
+	return ct
 }
 
-func (clientTest *ClientTest) Close() {
-	defer clientTest.httpServer.Close()
+func (ct *clientTest) Close() {
+	defer ct.httpServer.Close()
 }
 
 func TestGenerateToken(t *testing.T) {
-	clientTest := newClientTest(
+	ct := newClientTest(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/tokens/generate", r.URL.Path)
 			assert.Equal(t, []string{"test-api-key"}, r.Header["Authorization"])
-			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`{"token":"test-api-token"}`))
 		}),
 	)
-	defer clientTest.Close()
+	defer ct.Close()
 
-	assert.Equal(t, "", clientTest.apiClient.apiToken, "The initial api token should be empty")
-	assert.True(t, clientTest.apiClient.isApiTokenExpired(), "The initial api token exp should be before now")
+	assert.Equal(t, "", ct.apiClient.apiToken, "The initial api token should be empty")
+	assert.True(t, ct.apiClient.isApiTokenExpired(), "The initial api token exp should be before now")
 
-	token, err := clientTest.apiClient.GenerateToken()
+	token, err := ct.apiClient.GenerateToken()
 	assert.NoError(t, err, "Generating a token")
 	assert.Equal(t, "test-api-token", token)
-	assert.Equal(t, "test-api-token", clientTest.apiClient.apiToken)
-	assert.False(t, clientTest.apiClient.isApiTokenExpired(), "The api token should be unexpired")
+	assert.Equal(t, "test-api-token", ct.apiClient.apiToken)
+	assert.False(t, ct.apiClient.isApiTokenExpired(), "The api token should be unexpired")
 }
 
 func TestGetUnauthenticated(t *testing.T) {
-
-	clientTest := newClientTest(
+	ct := newClientTest(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/tokens/generate" {
 				assert.Equal(t, []string{"test-api-key"}, r.Header["Authorization"])
@@ -68,12 +66,11 @@ func TestGetUnauthenticated(t *testing.T) {
 				assert.Equal(t, []string{"Bearer test-api-token"}, r.Header["Authorization"])
 				w.Write([]byte(`"hello"`))
 			}
-			w.WriteHeader(http.StatusOK)
 		}),
 	)
-	defer clientTest.Close()
+	defer ct.Close()
 
-	resp, err := clientTest.apiClient.Get("/test-endpoint")
+	resp, err := ct.apiClient.Get("/test-endpoint")
 	assert.NoError(t, err, "Failed to make get request")
 
 	defer resp.Body.Close()
