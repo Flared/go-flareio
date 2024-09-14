@@ -109,19 +109,22 @@ func (client *ApiClient) isApiTokenExpired() bool {
 	return client.apiTokenExp.Before(time.Now())
 }
 
-func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
-	if client.isApiTokenExpired() {
-		if _, err := client.GenerateToken(); err != nil {
-			return nil, err
-		}
+func (client *ApiClient) getOrGenerateToken() (string, error) {
+	if !client.isApiTokenExpired() {
+		return client.apiToken, nil
 	}
-	apiToken := client.apiToken
+	return client.GenerateToken()
+}
 
-	request.Header.Add(
-		"Authorization",
-		fmt.Sprintf("Bearer %s", apiToken),
-	)
-
+func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
+	if apiToken, err := client.getOrGenerateToken(); err != nil {
+		return nil, err
+	} else {
+		request.Header.Add(
+			"Authorization",
+			fmt.Sprintf("Bearer %s", apiToken),
+		)
+	}
 	return client.httpClient.Do(request)
 }
 
