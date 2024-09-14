@@ -91,13 +91,14 @@ func TestGetUnauthenticated(t *testing.T) {
 func TestPost(t *testing.T) {
 	ct := newClientTest(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			assert.Equal(t, r.URL.Path, "/hey", "didn't get the expected path")
+			assert.Equal(t, "/hey", r.URL.Path, "didn't get the expected path")
+			assert.Equal(t, []string{"application/something-custom"}, r.Header["Content-Type"], "didn't get the expected path")
 			w.Write([]byte(`"ho"`))
 		}),
 	)
 	defer ct.Close()
 
-	resp, err := ct.apiClient.Post("/hey", "application/json", strings.NewReader(`"hey"`))
+	resp, err := ct.apiClient.Post("/hey", "application/something-custom", strings.NewReader(`"hey"`))
 	assert.NoError(t, err, "failed to make post request")
 	defer resp.Body.Close()
 

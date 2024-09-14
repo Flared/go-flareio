@@ -150,5 +150,7 @@ func (client *ApiClient) Post(path, contentType string, body io.Reader) (*http.R
 		return nil, fmt.Errorf("failed to create http request: %w", err)
 	}
 
+	request.Header.Set("Content-Type", contentType)
+
 	return client.do(request)
 }
