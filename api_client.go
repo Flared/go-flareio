@@ -146,7 +146,7 @@ func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
 	return client.httpClient.Do(request)
 }
 
-// Get peforms an authenticated Get request at the given path.
+// Get peforms an authenticated GET request at the given path.
 // Includes params in the query string.
 func (client *ApiClient) Get(path string, params *url.Values) (*http.Response, error) {
 	destUrl, err := client.createDestUrl(path, params)
@@ -162,7 +162,7 @@ func (client *ApiClient) Get(path string, params *url.Values) (*http.Response, e
 	return client.do(request)
 }
 
-// Post performs an authenticated Post request at the given path.
+// Post performs an authenticated POST request at the given path.
 // Includes params in the query string.
 // The provided ContentType should describe the content of the body.
 func (client *ApiClient) Post(
