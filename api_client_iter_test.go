@@ -29,7 +29,7 @@ func TestIterGetParams(t *testing.T) {
 	lastPageIndex := 0
 	nextTokens := []string{}
 
-	for response, err := range ct.apiClient.IterGet(
+	for result, err := range ct.apiClient.IterGet(
 		"/leaksdb/sources",
 		nil,
 	) {
@@ -39,8 +39,8 @@ func TestIterGetParams(t *testing.T) {
 			break
 		}
 		assert.Nil(t, err, "iter yielded an error")
-		assert.NotNil(t, response, "didn't get a response")
-		nextTokens = append(nextTokens, response.Next)
+		assert.NotNil(t, result, "didn't get a result")
+		nextTokens = append(nextTokens, result.Next)
 	}
 
 	assert.Equal(t, 3, lastPageIndex, "Didn't get the expected number of pages")

@@ -12,7 +12,7 @@ import (
 	"net/url"
 )
 
-type IterResponse struct {
+type IterResult struct {
 	Response *http.Response
 	Next     string
 }
@@ -20,13 +20,13 @@ type IterResponse struct {
 func (client *ApiClient) IterGet(
 	path string,
 	params *url.Values,
-) iter.Seq2[*IterResponse, error] {
+) iter.Seq2[*IterResult, error] {
 
 	type ScrollableResponse struct {
 		Next string `json:"next"`
 	}
 
-	return func(yield func(*IterResponse, error) bool) {
+	return func(yield func(*IterResult, error) bool) {
 		for {
 			// Fire the request
 			response, err := client.Get(
@@ -70,7 +70,7 @@ func (client *ApiClient) IterGet(
 			// Replace the body and return the response
 			response.Body = io.NopCloser(bytes.NewReader(body))
 			if !yield(
-				&IterResponse{
+				&IterResult{
 					Response: response,
 					Next:     scrollableResponse.Next,
 				},
