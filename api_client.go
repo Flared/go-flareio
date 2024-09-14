@@ -142,6 +142,13 @@ func (client *ApiClient) Get(path string) (*http.Response, error) {
 	return client.do(request)
 }
 
+func (client *ApiClient) GetParams(path string, params *url.Values) (*http.Response, error) {
+	if params != nil {
+		path = path + "?" + params.Encode()
+	}
+	return client.Get(path)
+}
+
 func (client *ApiClient) Post(path, contentType string, body io.Reader) (*http.Response, error) {
 	destUrl, err := url.JoinPath(client.baseUrl, path)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -105,4 +106,26 @@ func TestPost(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err, "failed to read response body")
 	assert.Equal(t, `"ho"`, string(body), "Didn't get expected response")
+}
+
+func TestGetParams(t *testing.T) {
+	ct := newClientTest(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/some-path?some-param=some-value", r.URL.Path, "didn't get the expected path")
+		}),
+	)
+	defer ct.Close()
+
+	resp, err := ct.apiClient.GetParams(
+		"/some-path",
+		&url.Values{
+			"some-param": []string{"some-value"},
+		},
+	)
+	assert.NoError(t, err, "failed to make get request")
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	assert.NoError(t, err, "failed to read response body")
+	assert.Equal(t, []byte{}, body)
 }
