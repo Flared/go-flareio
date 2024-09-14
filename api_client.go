@@ -35,6 +35,8 @@ func withBaseUrl(baseUrl string) ApiClientOption {
 	}
 }
 
+// NewApiClient can be used to create a new ApiClient
+// instance.
 func NewApiClient(
 	apiKey string,
 	optionFns ...ApiClientOption,
@@ -50,6 +52,8 @@ func NewApiClient(
 	return c
 }
 
+// GenerateToken creates a Flare API token using the
+// API Client's API key.
 func (client *ApiClient) GenerateToken() (string, error) {
 	// Prepare payload
 	type GeneratePayload struct {
@@ -142,6 +146,8 @@ func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
 	return client.httpClient.Do(request)
 }
 
+// Get peforms an authenticated Get request at the given path.
+// Includes params in the query string.
 func (client *ApiClient) Get(path string, params *url.Values) (*http.Response, error) {
 	destUrl, err := client.createDestUrl(path, params)
 	if err != nil {
@@ -156,6 +162,9 @@ func (client *ApiClient) Get(path string, params *url.Values) (*http.Response, e
 	return client.do(request)
 }
 
+// Post performs an authenticated Post request at the given path.
+// Includes params in the query string.
+// The provided ContentType should describe the content of the body.
 func (client *ApiClient) Post(
 	path string,
 	params *url.Values,

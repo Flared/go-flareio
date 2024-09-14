@@ -17,6 +17,8 @@ type IterResult struct {
 	Next     string
 }
 
+// IterGet allows to iterate over responses for an API endpoint that
+// supports the Flare standard paging pattern.
 func (client *ApiClient) IterGet(
 	path string,
 	params *url.Values,
