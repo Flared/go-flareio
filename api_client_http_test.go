@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -80,11 +81,27 @@ func TestGetUnauthenticated(t *testing.T) {
 
 	resp, err := ct.apiClient.Get("/test-endpoint")
 	assert.NoError(t, err, "Failed to make get request")
-
 	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err, "Failed to read resp body")
-
 	assert.Equal(t, `"hello"`, string(body), "Didn't get expected response")
-	assert.NoError(t, err, "Generating a token")
+}
+
+func TestPost(t *testing.T) {
+	ct := newClientTest(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, r.URL.Path, "/hey", "didn't get the expected path")
+			w.Write([]byte(`"ho"`))
+		}),
+	)
+	defer ct.Close()
+
+	resp, err := ct.apiClient.Post("/hey", "application/json", strings.NewReader(`"hey"`))
+	assert.NoError(t, err, "failed to make post request")
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	assert.NoError(t, err, "failed to read response body")
+	assert.Equal(t, `"ho"`, string(body), "Didn't get expected response")
 }
