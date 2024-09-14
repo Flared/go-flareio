@@ -80,7 +80,7 @@ func TestGetUnauthenticated(t *testing.T) {
 	)
 	defer ct.Close()
 
-	resp, err := ct.apiClient.Get("/test-endpoint")
+	resp, err := ct.apiClient.Get("/test-endpoint", nil)
 	assert.NoError(t, err, "Failed to make get request")
 	defer resp.Body.Close()
 
@@ -99,7 +99,7 @@ func TestPost(t *testing.T) {
 	)
 	defer ct.Close()
 
-	resp, err := ct.apiClient.Post("/hey", "application/something-custom", strings.NewReader(`"hey"`))
+	resp, err := ct.apiClient.Post("/hey", nil, "application/something-custom", strings.NewReader(`"hey"`))
 	assert.NoError(t, err, "failed to make post request")
 	defer resp.Body.Close()
 
@@ -117,7 +117,7 @@ func TestGetParams(t *testing.T) {
 	)
 	defer ct.Close()
 
-	resp, err := ct.apiClient.GetParams(
+	resp, err := ct.apiClient.Get(
 		"/some-path",
 		&url.Values{
 			"some-param": []string{"some-value"},

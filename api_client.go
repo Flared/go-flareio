@@ -142,11 +142,7 @@ func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
 	return client.httpClient.Do(request)
 }
 
-func (client *ApiClient) Get(path string) (*http.Response, error) {
-	return client.GetParams(path, nil)
-}
-
-func (client *ApiClient) GetParams(path string, params *url.Values) (*http.Response, error) {
+func (client *ApiClient) Get(path string, params *url.Values) (*http.Response, error) {
 	destUrl, err := client.createDestUrl(path, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create dest URL: %w", err)
@@ -160,11 +156,7 @@ func (client *ApiClient) GetParams(path string, params *url.Values) (*http.Respo
 	return client.do(request)
 }
 
-func (client *ApiClient) Post(path, contentType string, body io.Reader) (*http.Response, error) {
-	return client.PostParams(path, nil, contentType, body)
-}
-
-func (client *ApiClient) PostParams(
+func (client *ApiClient) Post(
 	path string,
 	params *url.Values,
 	contentType string,

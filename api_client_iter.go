@@ -29,7 +29,7 @@ func (client *ApiClient) IterGet(
 	return func(yield func(*IterResponse, error) bool) {
 		for {
 			// Fire the request
-			response, err := client.GetParams(
+			response, err := client.Get(
 				path,
 				params,
 			)
