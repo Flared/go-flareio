@@ -55,6 +55,33 @@ func TestIterGet(t *testing.T) {
 
 }
 
+func TestIterGetBadResponse(t *testing.T) {
+	ct := newClientTest(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/leaksdb/sources", r.URL.Path)
+			w.Write([]byte(`{"next": 11, "items": []}`))
+		}),
+	)
+	defer ct.Close()
+
+	lastPageIndex := 0
+
+	for result, err := range ct.apiClient.IterGet(
+		"/leaksdb/sources",
+		nil,
+	) {
+		lastPageIndex = lastPageIndex + 1
+		if lastPageIndex > 2 {
+			// We are going crazy here...
+			break
+		}
+		assert.ErrorContains(t, err, "failed to unmarshal", "Bad next token should trigger an error")
+		assert.Nil(t, result, "bad response should not contain a result")
+	}
+
+	assert.Equal(t, 1, lastPageIndex, "Didn't get the expected number of pages")
+}
+
 func TestIterPostJson(t *testing.T) {
 	ct := newClientTest(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
