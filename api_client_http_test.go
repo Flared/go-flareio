@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,10 +21,14 @@ func newClientTest(
 	httpServer := httptest.NewServer(
 		handler,
 	)
+
 	apiClient := NewApiClient(
 		"test-api-key",
 		withBaseUrl(httpServer.URL),
 	)
+	apiClient.apiToken = "test-api-token"
+	apiClient.apiTokenExp = time.Now().Add(time.Minute * 45)
+
 	ct := &clientTest{
 		httpServer: httpServer,
 		apiClient:  apiClient,
@@ -44,6 +49,9 @@ func TestGenerateToken(t *testing.T) {
 		}),
 	)
 	defer ct.Close()
+
+	ct.apiClient.apiToken = ""
+	ct.apiClient.apiTokenExp = time.Time{}
 
 	assert.Equal(t, "", ct.apiClient.apiToken, "The initial api token should be empty")
 	assert.True(t, ct.apiClient.isApiTokenExpired(), "The initial api token exp should be before now")
