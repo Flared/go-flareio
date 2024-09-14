@@ -17,24 +17,19 @@ type IterResult struct {
 	Next     string
 }
 
-// IterGet allows to iterate over responses for an API endpoint that
-// supports the Flare standard paging pattern.
-func (client *ApiClient) IterGet(
-	path string,
-	params *url.Values,
+func createPagingIterator(
+	fetchPage func(from string) (*http.Response, error),
 ) iter.Seq2[*IterResult, error] {
-
-	type ScrollableResponse struct {
+	type ResponseWithNext struct {
 		Next string `json:"next"`
 	}
+
+	cursor := ""
 
 	return func(yield func(*IterResult, error) bool) {
 		for {
 			// Fire the request
-			response, err := client.Get(
-				path,
-				params,
-			)
+			response, err := fetchPage(cursor)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -60,8 +55,8 @@ func (client *ApiClient) IterGet(
 			}
 
 			// Look for the next token
-			var scrollableResponse ScrollableResponse
-			if err := json.Unmarshal(body, &scrollableResponse); err != nil {
+			var responseWithNext ResponseWithNext
+			if err := json.Unmarshal(body, &responseWithNext); err != nil {
 				yield(
 					nil,
 					fmt.Errorf("failed to unmarshal response: %w", err),
@@ -74,7 +69,7 @@ func (client *ApiClient) IterGet(
 			if !yield(
 				&IterResult{
 					Response: response,
-					Next:     scrollableResponse.Next,
+					Next:     responseWithNext.Next,
 				},
 				nil,
 			) {
@@ -82,15 +77,63 @@ func (client *ApiClient) IterGet(
 			}
 
 			// Was this the last page?
-			if scrollableResponse.Next == "" {
+			if responseWithNext.Next == "" {
 				return
 			}
 
 			// Set the cursor for next page
-			if params == nil {
-				params = &url.Values{}
-			}
-			params.Set("from", scrollableResponse.Next)
+			cursor = responseWithNext.Next
 		}
 	}
+}
+
+// IterGet allows to iterate over responses for an API endpoint that
+// supports the Flare standard paging pattern.
+func (client *ApiClient) IterGet(
+	path string,
+	params *url.Values,
+) iter.Seq2[*IterResult, error] {
+	return createPagingIterator(
+		func(cursor string) (*http.Response, error) {
+			if cursor != "" {
+				if params == nil {
+					params = &url.Values{}
+				}
+				params.Set("from", cursor)
+			}
+			return client.Get(
+				path,
+				params,
+			)
+		},
+	)
+}
+
+// IterPostJson allows to iterate over responses for an API endpoint that
+// supports the Flare standard paging pattern.
+func (client *ApiClient) IterPostJson(
+	path string,
+	params *url.Values,
+	body map[string]interface{},
+) iter.Seq2[*IterResult, error] {
+	return createPagingIterator(
+		func(cursor string) (*http.Response, error) {
+			if cursor != "" {
+				body["from"] = cursor
+			}
+
+			encodedJson, err := json.Marshal(body)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal body to JSON: %w", err)
+			}
+
+			return client.Post(
+				path,
+				params,
+				"application/json",
+				bytes.NewReader(encodedJson),
+			)
+		},
+	)
+
 }
