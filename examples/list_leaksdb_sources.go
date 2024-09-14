@@ -21,7 +21,7 @@ func main() {
 	}
 	defer resp.Body.Close()
 	if _, err := io.Copy(os.Stdout, resp.Body); err != nil {
-		fmt.Printf("failed to get sources: %s\b", err)
+		fmt.Printf("failed to print sources: %s\n", err)
 		os.Exit(1)
 	}
 }
