@@ -1,5 +1,7 @@
 # go-flareio
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/Flared/go-flareio.svg)](https://pkg.go.dev/github.com/Flared/go-flareio)
+
 `flareio` is a light [Flare API](https://api.docs.flare.io/) SDK.
 It is a wrapper around [net/http.Client](https://pkg.go.dev/net/http#Client) that automatically manages API authentication.
 
