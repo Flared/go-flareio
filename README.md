@@ -1,6 +1,6 @@
 # go-flareio
 
-`flareio` is a light [Flare API](https://api.docs.flare.io/) SDK that wraps a [net/http Client](https://pkg.go.dev/net/http#Client) and automatically manages authentication.
+`flareio` is a light wrapper around [net/http.Client](https://pkg.go.dev/net/http#Client) that automatically manages API authentication.
 
 It exposes methods that are similar to `net/http.Client`.
 
