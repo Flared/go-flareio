@@ -35,6 +35,9 @@ func newClientTest(
 		httpServer: httpServer,
 		apiClient:  apiClient,
 	}
+
+	ct.apiClient.httpClient.RetryWaitMax = 0
+
 	return ct
 }
 
@@ -129,4 +132,28 @@ func TestGetParams(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err, "failed to read response body")
 	assert.Equal(t, []byte{}, body)
+}
+
+func TestGetRetry429(t *testing.T) {
+	requestsReceived := 0
+	ct := newClientTest(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestsReceived = requestsReceived + 1
+			if requestsReceived < 2 {
+				w.WriteHeader(429)
+			}
+		}),
+	)
+	defer ct.Close()
+
+	resp, err := ct.apiClient.Get(
+		"/some-path",
+		nil,
+	)
+	if !assert.NoError(t, err, "failed to make get request") {
+		return
+	}
+	defer resp.Body.Close()
+
+	assert.Equal(t, 2, requestsReceived, "didn't perform the number of expected requests")
 }

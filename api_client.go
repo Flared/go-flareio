@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 type ApiClient struct {
 	tenantId    int
 	apiKey      string
-	httpClient  *http.Client
+	httpClient  *retryablehttp.Client
 	baseUrl     string
 	apiToken    string
 	apiTokenExp time.Time
@@ -35,6 +37,16 @@ func withBaseUrl(baseUrl string) ApiClientOption {
 	}
 }
 
+func defaultHttpClient() *retryablehttp.Client {
+	c := retryablehttp.NewClient()
+	// Match the Python SDK retry settings:
+	// - https://github.com/Flared/python-flareio/blob/d24061a086137e6a6fc7f467d6773660edf851f2/flareio/api_client.py#L44
+	c.RetryMax = 5
+	c.RetryWaitMin = time.Second * 2
+	c.RetryWaitMax = time.Second * 15
+	return c
+}
+
 // NewApiClient can be used to create a new ApiClient
 // instance.
 func NewApiClient(
@@ -44,7 +56,7 @@ func NewApiClient(
 	c := &ApiClient{
 		apiKey:     apiKey,
 		baseUrl:    "https://api.flare.io/",
-		httpClient: &http.Client{},
+		httpClient: defaultHttpClient(),
 	}
 	for _, optionFn := range optionFns {
 		optionFn(c)
@@ -80,7 +92,7 @@ func (client *ApiClient) GenerateToken() (string, error) {
 	request.Header.Set("Authorization", client.apiKey)
 
 	// Fire the request
-	resp, err := client.httpClient.Do(request)
+	resp, err := client.do(request, false)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate API token: %w", err)
 	}
@@ -131,16 +143,25 @@ func (client *ApiClient) newRequest(
 	return http.NewRequest(method, destUrl, body)
 }
 
-func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
-	if apiToken, err := client.getOrGenerateToken(); err != nil {
-		return nil, err
-	} else {
+func (client *ApiClient) do(
+	request *http.Request,
+	authenticated bool,
+) (*http.Response, error) {
+	if authenticated {
+		apiToken, err := client.getOrGenerateToken()
+		if err != nil {
+			return nil, err
+		}
 		request.Header.Add(
 			"Authorization",
 			fmt.Sprintf("Bearer %s", apiToken),
 		)
 	}
-	return client.httpClient.Do(request)
+	retryableRequest, err := retryablehttp.FromRequest(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare retryable request: %w", err)
+	}
+	return client.httpClient.Do(retryableRequest)
 }
 
 // Get peforms an authenticated GET request at the given path.
@@ -150,7 +171,7 @@ func (client *ApiClient) Get(path string, params *url.Values) (*http.Response, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to create http request: %w", err)
 	}
-	return client.do(request)
+	return client.do(request, true)
 }
 
 // Post performs an authenticated POST request at the given path.
@@ -167,5 +188,5 @@ func (client *ApiClient) Post(
 		return nil, fmt.Errorf("failed to create http request: %w", err)
 	}
 	request.Header.Set("Content-Type", contentType)
-	return client.do(request)
+	return client.do(request, true)
 }
