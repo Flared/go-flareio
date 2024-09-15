@@ -67,16 +67,11 @@ func (client *ApiClient) GenerateToken() (string, error) {
 		return "", fmt.Errorf("failed to marshal generate payload: %w", err)
 	}
 
-	// Create dest URL
-	destUrl, err := url.JoinPath(client.baseUrl, "/tokens/generate")
-	if err != nil {
-		return "", fmt.Errorf("failed to create dest URL: %w", err)
-	}
-
 	// Prepare the request
-	request, err := http.NewRequest(
+	request, err := client.newRequest(
 		"POST",
-		destUrl,
+		"/tokens/generate",
+		nil,
 		bytes.NewReader(payloadBytes),
 	)
 	if err != nil {
