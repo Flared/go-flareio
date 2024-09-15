@@ -39,11 +39,14 @@ func withBaseUrl(baseUrl string) ApiClientOption {
 
 func defaultHttpClient() *retryablehttp.Client {
 	c := retryablehttp.NewClient()
+	c.Logger = nil
+
 	// Match the Python SDK retry settings:
 	// - https://github.com/Flared/python-flareio/blob/d24061a086137e6a6fc7f467d6773660edf851f2/flareio/api_client.py#L44
 	c.RetryMax = 5
 	c.RetryWaitMin = time.Second * 2
 	c.RetryWaitMax = time.Second * 15
+
 	return c
 }
 
