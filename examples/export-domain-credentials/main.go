@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/Flared/go-flareio"
 )
@@ -38,6 +39,9 @@ func exportDomainCredentials(
 		"/leaksdb/v2/credentials/by_domain/"+url.QueryEscape(domain),
 		nil,
 	) {
+		// Rate Limiting
+		time.Sleep(time.Second * 1)
+
 		if err != nil {
 			return fmt.Errorf("failed to fetch page: %w", err)
 		}
