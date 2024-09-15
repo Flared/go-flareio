@@ -148,6 +148,28 @@ func TestGetParams(t *testing.T) {
 	assert.Equal(t, []byte{}, body)
 }
 
+func TestGetUserAgent(t *testing.T) {
+	ct := newClientTest(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "go-flareio/0.1.0", r.Header.Get("User-Agent"), "didn't get the expected User-Agent")
+			w.Write([]byte("user-agent-test"))
+		}),
+	)
+	defer ct.Close()
+
+	resp, err := ct.apiClient.Get("/some-path", nil)
+	if !assert.NoError(t, err, "failed to make get request") {
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if !assert.NoError(t, err, "failed to read response body") {
+		return
+	}
+	assert.Equal(t, []byte("user-agent-test"), body)
+}
+
 func TestGetRetry429(t *testing.T) {
 	requestsReceived := 0
 	ct := newClientTest(

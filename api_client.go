@@ -160,6 +160,11 @@ func (client *ApiClient) do(
 			fmt.Sprintf("Bearer %s", apiToken),
 		)
 	}
+
+	// Just like Go's User-Agent is hardcoded to "Go-http-client/1.1", we hardcode ours.
+	// It isn't meant to reflect the actual library version.
+	request.Header.Set("User-Agent", "go-flareio/0.1.0")
+
 	retryableRequest, err := retryablehttp.FromRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare retryable request: %w", err)
