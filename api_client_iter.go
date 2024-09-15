@@ -12,9 +12,15 @@ import (
 	"net/url"
 )
 
+// IterResult contains results for a given page.
 type IterResult struct {
+	// Response associated with the fetched page.
+	//
+	// The response's body must be closed.
 	Response *http.Response
-	Next     string
+
+	// Next is the token to be used to fetch the next page.
+	Next string
 }
 
 func getIterResult(
