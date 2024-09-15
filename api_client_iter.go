@@ -25,12 +25,19 @@ func getIterResult(
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch next page: %w", err)
 	}
-
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf(
+			"got http status code %d status while fetching next page: %s",
+			response.StatusCode,
+			body,
+		)
 	}
 
 	type ResponseWithNext struct {

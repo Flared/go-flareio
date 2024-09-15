@@ -55,7 +55,7 @@ func TestIterGet(t *testing.T) {
 
 }
 
-func TestIterGetBadResponse(t *testing.T) {
+func TestIterGetBadResponseJson(t *testing.T) {
 	ct := newClientTest(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/leaksdb/sources", r.URL.Path)
@@ -77,6 +77,39 @@ func TestIterGetBadResponse(t *testing.T) {
 		}
 		assert.ErrorContains(t, err, "failed to unmarshal", "Bad next token should trigger an error")
 		assert.Nil(t, result, "bad response should not contain a result")
+	}
+
+	assert.Equal(t, 1, lastPageIndex, "Didn't get the expected number of pages")
+}
+
+func TestIterGetBadResponseStatus(t *testing.T) {
+	ct := newClientTest(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Correct response structure but bad response status code.
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`"some error"`))
+		}),
+	)
+	defer ct.Close()
+
+	lastPageIndex := 0
+
+	for result, err := range ct.apiClient.IterGet(
+		"/leaksdb/sources",
+		nil,
+	) {
+		lastPageIndex = lastPageIndex + 1
+		if lastPageIndex > 2 {
+			// We are going crazy here...
+			break
+		}
+		assert.ErrorContains(
+			t,
+			err,
+			`got http status code 400 status while fetching next page: "some error"`,
+			"Bad HTTP status should trigger an error",
+		)
+		assert.Nil(t, result, "result should be nil on errors")
 	}
 
 	assert.Equal(t, 1, lastPageIndex, "Didn't get the expected number of pages")
