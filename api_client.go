@@ -120,18 +120,20 @@ func (client *ApiClient) getOrGenerateToken() (string, error) {
 	return client.GenerateToken()
 }
 
-func (client *ApiClient) createDestUrl(
+func (client *ApiClient) newRequest(
+	method string,
 	path string,
 	params *url.Values,
-) (string, error) {
+	body io.Reader,
+) (*http.Request, error) {
 	destUrl, err := url.JoinPath(client.baseUrl, path)
 	if err != nil {
-		return "", fmt.Errorf("failed to create dest URL: %w", err)
+		return nil, fmt.Errorf("failed to create dest URL: %w", err)
 	}
 	if params != nil {
 		destUrl = destUrl + "?" + params.Encode()
 	}
-	return destUrl, nil
+	return http.NewRequest(method, destUrl, body)
 }
 
 func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
@@ -149,16 +151,10 @@ func (client *ApiClient) do(request *http.Request) (*http.Response, error) {
 // Get peforms an authenticated GET request at the given path.
 // Includes params in the query string.
 func (client *ApiClient) Get(path string, params *url.Values) (*http.Response, error) {
-	destUrl, err := client.createDestUrl(path, params)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create dest URL: %w", err)
-	}
-
-	request, err := http.NewRequest("GET", destUrl, nil)
+	request, err := client.newRequest("GET", path, params, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create http request: %w", err)
 	}
-
 	return client.do(request)
 }
 
@@ -171,17 +167,10 @@ func (client *ApiClient) Post(
 	contentType string,
 	body io.Reader,
 ) (*http.Response, error) {
-	destUrl, err := client.createDestUrl(path, params)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create dest URL: %w", err)
-	}
-
-	request, err := http.NewRequest("POST", destUrl, body)
+	request, err := client.newRequest("POST", path, params, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create http request: %w", err)
 	}
-
 	request.Header.Set("Content-Type", contentType)
-
 	return client.do(request)
 }
