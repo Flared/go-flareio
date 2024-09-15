@@ -93,8 +93,7 @@ func TestIterPostJson(t *testing.T) {
 				From string `json:"from"`
 			}
 			var pagedRequest PagedRequest
-			if err := json.NewDecoder(r.Body).Decode(&pagedRequest); err != nil {
-				assert.NoError(t, err, "Error decoding posted JSON")
+			if err := json.NewDecoder(r.Body).Decode(&pagedRequest); !assert.NoError(t, err, "Error decoding posted JSON") {
 				return
 			}
 

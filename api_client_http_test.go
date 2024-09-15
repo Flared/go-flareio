@@ -62,7 +62,9 @@ func TestGenerateToken(t *testing.T) {
 	assert.True(t, ct.apiClient.isApiTokenExpired(), "The initial api token exp should be before now")
 
 	token, err := ct.apiClient.GenerateToken()
-	assert.NoError(t, err, "Generating a token")
+	if !assert.NoError(t, err, "Generating a token") {
+		return
+	}
 	assert.Equal(t, "test-api-token", token)
 	assert.Equal(t, "test-api-token", ct.apiClient.apiToken)
 	assert.False(t, ct.apiClient.isApiTokenExpired(), "The api token should be unexpired")
@@ -84,11 +86,15 @@ func TestGetUnauthenticated(t *testing.T) {
 	defer ct.Close()
 
 	resp, err := ct.apiClient.Get("/test-endpoint", nil)
-	assert.NoError(t, err, "Failed to make get request")
+	if !assert.NoError(t, err, "Failed to make get request") {
+		return
+	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	assert.NoError(t, err, "Failed to read resp body")
+	if !assert.NoError(t, err, "Failed to read resp body") {
+		return
+	}
 	assert.Equal(t, `"hello"`, string(body), "Didn't get expected response")
 }
 
@@ -103,11 +109,15 @@ func TestPost(t *testing.T) {
 	defer ct.Close()
 
 	resp, err := ct.apiClient.Post("/hey", nil, "application/something-custom", strings.NewReader(`"hey"`))
-	assert.NoError(t, err, "failed to make post request")
+	if !assert.NoError(t, err, "failed to make post request") {
+		return
+	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	assert.NoError(t, err, "failed to read response body")
+	if !assert.NoError(t, err, "failed to read response body") {
+		return
+	}
 	assert.Equal(t, `"ho"`, string(body), "Didn't get expected response")
 }
 
@@ -126,11 +136,15 @@ func TestGetParams(t *testing.T) {
 			"some-param": []string{"some-value"},
 		},
 	)
-	assert.NoError(t, err, "failed to make get request")
+	if !assert.NoError(t, err, "failed to make get request") {
+		return
+	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	assert.NoError(t, err, "failed to read response body")
+	if !assert.NoError(t, err, "failed to read response body") {
+		return
+	}
 	assert.Equal(t, []byte{}, body)
 }
 
