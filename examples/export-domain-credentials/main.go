@@ -6,7 +6,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -35,9 +34,15 @@ func exportDomainCredentials(
 ) error {
 	csvWriter := csv.NewWriter(os.Stdout)
 
-	for result, err := range client.IterGet(
-		"/leaksdb/v2/credentials/by_domain/"+url.QueryEscape(domain),
+	for result, err := range client.IterPostJson(
+		"/leaksdb/v2/credentials/_search",
 		nil,
+		map[string]interface{}{
+			"query": map[string]string{
+				"type": "domain",
+				"fqdn": domain,
+			},
+		},
 	) {
 		// Rate Limiting
 		time.Sleep(time.Second * 1)
