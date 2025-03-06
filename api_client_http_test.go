@@ -50,6 +50,7 @@ func TestGenerateToken(t *testing.T) {
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "/tokens/generate", r.URL.Path)
 			assert.Equal(t, "test-api-key", r.Header.Get("Authorization"))
+			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 			w.Write([]byte(`{"token":"test-api-token"}`))
 		}),
 	)

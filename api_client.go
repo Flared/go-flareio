@@ -94,6 +94,9 @@ func (client *ApiClient) GenerateToken() (string, error) {
 	}
 	request.Header.Set("Authorization", client.apiKey)
 
+	// Tenant scoping like {"tenant_id": 123} is ignored if Content-Type not set to "application/json"
+	request.Header.Set("Content-Type", "application/json")
+
 	// Fire the request
 	resp, err := client.do(request, false)
 	if err != nil {
